@@ -1,5 +1,5 @@
-from app import app, db
-from app.models import Node
+from __init__ import app, db
+from models import Node
 from flask import jsonify, request
 import json
 
