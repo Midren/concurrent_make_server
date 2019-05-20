@@ -17,4 +17,3 @@ class Node(db.Model):
     def __repr__(self):
         user = User.query.filter_by(user_name_id=self.login_id).first()
         return '<Node ' + user.user_name + '@' + self.ip + '>'
-

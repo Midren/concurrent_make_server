@@ -19,10 +19,10 @@ def get_pk():
 
 @app.route("/", methods=["POST"])
 def post():
-
-    public_key = request.form["public_key"]
-    ip = request.form["ip"]
-    login = request.form["login"]
+    form = request.get_json()
+    public_key = form["public_key"]
+    ip = form["ip"]
+    login = form["login"]
     user = User.query.filter_by(user_name=login).first()
     if (user is None):
         user = User(user_name=login)
@@ -39,6 +39,18 @@ def post():
         user_list[0].ip = ip
         user_list[0].login = user
         db.session.commit()
-    return "OK"
+    return "Posted",200
+
+@app.route("/<int:id_u>", methods=["DELETE"])
+def delete(id_u):
+    print(db.session.query(Node.id).all())
+    if (id_u,) not in db.session.query(Node.id).all():
+        return "There is no such student in database", 404
+
+    db.session.query(Node).filter(Node.id == id_u).delete(synchronize_session='evaluate')
+    db.session.commit()
+    return "Everything fine", 200
+
+
 
     
