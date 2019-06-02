@@ -1,28 +1,28 @@
-from flask import jsonify, request
+from flask import jsonify, request, Blueprint
 from app.models import Node, User
 from app import app, db
-from flask.views import MethodView
+
+nodes = Blueprint('/nodes', __name__)
 
 
-@app.route("/get_ips", methods=["GET"])
-def get_ips():
-    addresses = []
-    for node in Node.query.all():
-        user = User.query.filter_by(user_name_id=node.login_id).first()
-        addresses.append({"address": user.user_name + "@" + node.ip})
-    return jsonify({"addresses": addresses})
+@app.route("/node_summary", methods=["GET"])
+def get_summary():
+    summary = db.engine.execute("select * from node_summary")
+    objs = []
+    for i in summary:
+        obj = {}
+        obj['id'] = i[0]
+        obj['user_name'] = i[1]
+        obj['compiler_name'] = i[2]
+        obj['major_version'] = i[3]
+        obj['minor_verison'] = i[4]
+        obj['os_name'] = i[5]
+        objs.append(obj)
+    return jsonify(objs), 200
 
 
-@app.route("/get_public_keys", methods=["GET"])
-def get_pk():
-    pks = []
-    for node in Node.query.all():
-        pks.append({"public_key": node.public_key})
-    return jsonify({"public_keys": pks})
-
-
-@app.route("/", methods=["POST"])
-def post():
+@nodes.route("", methods=["POST"])
+def create_node():
     form = request.get_json()
     public_key = form["public_key"]
     ip = form["ip"]
@@ -43,6 +43,33 @@ def post():
         user_list[0].login = user
         db.session.commit()
     return "Posted", 200
+
+
+@nodes.route("/<int:id>", methods=["PUT"])
+def change_node(id):
+    new_node = request.get_json()
+    node = Node.query.get(id)
+    node.public_key = new_node["public_key"]
+    node.ip = new_node["ip"]
+    db.session.commit()
+    return jsonify(eval(str(new_node)))
+
+
+@app.route("/get_ips", methods=["GET"])
+def get_ips():
+    addresses = []
+    for node in Node.query.all():
+        user = User.query.filter_by(user_name_id=node.login_id).first()
+        addresses.append({"address": user.user_name + "@" + node.ip})
+    return jsonify({"addresses": addresses})
+
+
+@app.route("/get_public_keys", methods=["GET"])
+def get_pk():
+    pks = []
+    for node in Node.query.all():
+        pks.append({"public_key": node.public_key})
+    return jsonify({"public_keys": pks})
 
 
 @app.route("/<int:id_u>", methods=["DELETE"])
