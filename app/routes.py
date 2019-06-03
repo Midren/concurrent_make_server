@@ -1,6 +1,6 @@
 from flask import jsonify, request, Blueprint
-from app.models import Node, User
-from app import app, db
+from models import Node, User
+from __init__ import app, db
 
 nodes = Blueprint('/nodes', __name__)
 
@@ -21,8 +21,10 @@ def get_summary():
     return jsonify(objs), 200
 
 
-@nodes.route("", methods=["POST"])
+@app.route("/", methods=["POST"])
 def create_node():
+    print("here")
+    print(request.data)
     form = request.get_json()
     public_key = form["public_key"]
     ip = form["ip"]
