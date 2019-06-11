@@ -15,13 +15,7 @@ def view_helper():
         obj['major_version'] = i[3]
         obj['minor_version'] = i[4]
         obj['os_name'] = i[5]
-        for k, i in request.args.items():
-            if obj[k] == i:
-                continue
-            else:
-                break
-        else:
-            objs.append(obj)
+        objs.append(obj)
     return objs
 
 @app.route("/node_summary", methods=["GET"])
@@ -84,8 +78,16 @@ def change_node(id):
 @app.route("/get_ips", methods=["GET"])
 def get_ips():
     req_dict = request.args.to_dict()
-    objs = view_helper()
-    filtered_objs = list(filter(lambda x: all(item in x.items() for item in req_dict.items()), objs))
+    try:
+        req_dict["minor_version"] = int(req_dict["minor_version"])
+    except:
+        pass
+    try:
+        req_dict["major_version"] = int(req_dict["major_version"])
+    except:
+        pass
+    objects = view_helper()
+    filtered_objs = list(filter(lambda x: all(item in x.items() for item in req_dict.items()), objects))
     addresses = []
     for node in filtered_objs:
         cur = Node.query.get(node["id"])
