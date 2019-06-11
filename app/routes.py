@@ -4,9 +4,7 @@ from __init__ import app, db
 
 nodes = Blueprint('/nodes', __name__)
 
-
-@app.route("/node_summary", methods=["GET"])
-def get_summary():
+def view_helper():
     summary = db.engine.execute("select * from node_summary")
     objs = []
     for i in summary:
@@ -24,6 +22,11 @@ def get_summary():
                 break
         else:
             objs.append(obj)
+    return objs
+
+@app.route("/node_summary", methods=["GET"])
+def get_summary():
+    objs = view_helper()
     return jsonify(objs), 200
 
 
@@ -80,10 +83,13 @@ def change_node(id):
 
 @app.route("/get_ips", methods=["GET"])
 def get_ips():
+    req_dict = request.args.to_dict()
+    objs = view_helper()
+    filtered_objs = list(filter(lambda x: all(item in x.items() for item in req_dict.items()), objs))
     addresses = []
-    for node in Node.query.all():
-        user = User.query.filter_by(user_name_id=node.login_id).first()
-        addresses.append({"address": user.user_name + "@" + node.ip})
+    for node in filtered_objs:
+        cur = Node.query.get(node["id"])
+        addresses.append({"address": node["user_name"] + "@" + cur.ip})
     return jsonify({"addresses": addresses})
 
 
