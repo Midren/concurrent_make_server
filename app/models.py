@@ -6,6 +6,7 @@ class Compiler(db.Model):
     compiler_name = db.Column(db.String(20), unique=True)
     major_version = db.Column(db.Integer, nullable=False)
     minor_version = db.Column(db.Integer, nullable=False)
+    db.UniqueConstraint("major_version", "minor_version", "compiler_name", name="compiler_exists")
     computer = db.relationship('Computer', backref='compiler_name')
 
 
